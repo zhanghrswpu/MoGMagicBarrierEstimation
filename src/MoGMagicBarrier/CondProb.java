@@ -66,6 +66,7 @@ public class CondProb {
 	}// of getIndexBasedRating
 
 	/**
+	 * Step 1: 
 	 * Compute true-rating-based condition probability with step-length integration
 	 * 
 	 * output: trueBasedCondPro (numNoise * LEVEL * LEVEL)
@@ -77,9 +78,9 @@ public class CondProb {
 		} // of for i
 
 		for (int k = 0; k < data.numNoise; k++) {
-			for (int z = 0; z < data.LEVEL; z++) {
+			for (int z = 0; z < data.LEVEL; z++) {//z represents the true rating
 				// stepLengthIntegration(i + 1, paraSigma, -1000, 0)
-				for (int y = 0; y < data.LEVEL; y++) {
+				for (int y = 0; y < data.LEVEL; y++) {//y represents the visual rating
 					/*
 					 * if (y == 0) { trueBasedCondPro[k][y][z] =
 					 * NormalDistribution.stepLengthIntegration(rlow + z * stepLen, sigma[k], -1000,
@@ -119,6 +120,7 @@ public class CondProb {
 	}// Of computeTrueBasedCondProWithInteg
 
 	/**
+	 * Step 2:
 	 * Compute probability of visual rating
 	 * 
 	 * output: propOfEachVisRating (numNoise * LEVEL)
@@ -133,8 +135,10 @@ public class CondProb {
 		for (int i = 0; i < data.numOfRatings; i++) {
 			double tempOrigRating = data.dataVector[i];
 			for (int k = 0; k < data.numNoise; k++) {
+				//Step 1. For each sigma, obtain the total noise distribution
 				totalGammaOfVisRating[k] += paraMLG.noiseDistribution[i][k];
 				for (int y = 0; y < data.LEVEL; y++) {
+					//Step 2. For each sigma and each visual rating, obtain the total noise distribution
 					if (tempOrigRating > data.rlow + y * data.stepLen - data.stepLen / 2
 							&& tempOrigRating <= data.rlow + y * data.stepLen + data.stepLen / 2) {
 						gammaOfEachVisRating[k][y] += paraMLG.noiseDistribution[i][k];
@@ -175,7 +179,7 @@ public class CondProb {
 		
 		for (int k = 0; k < data.numNoise; k++) {
 			for (int z = 0; z < data.LEVEL; z++) {
-				propOfTrueRating[k][z] = 0.2;
+				propOfTrueRating[k][z] = 1.0 / data.LEVEL;
 			} // Of if
 		} // of for k
 
@@ -190,7 +194,7 @@ public class CondProb {
 			// propOfTrueRating[k] =
 			// GuassSeidelInteration.Gauss_seidel2(trueBasedCondPro[k],
 			// propOfTrueRating[k], propOfEachVisRating[k], 1e-5);
-			propOfTrueRating[k] = Iteration.SOR(trueBasedCondPro[k], propOfEachVisRating[k], 0.5, 1e-5);
+			propOfTrueRating[k] = Iteration.SOR(trueBasedCondPro[k], propOfEachVisRating[k], 0.1, 1e-5);
 		} // of for k
 
 		// Step 4. Check
@@ -278,4 +282,23 @@ public class CondProb {
 			} // Of for i
 		} // of for k
 	}// Of computeRealBasedCondProbabilityBasedOnBayes
+	
+	/**
+	 * 
+	 * @param args
+	 */
+	public static void main(String args[]) {
+		try {
+			// Prepare data and preprocessing
+			String tempPropertyFileName = new String("src/properties/ml-100k.properties");
+			DataInfo tempData = new DataInfo(tempPropertyFileName);
+			tempData.numNoise = 1;
+			CondProb tempCon = new CondProb(tempData);
+			float[] tempSigma = {(float)(0.9*0.9)};
+			tempCon.computeTrueBasedCondProWithInteg(tempSigma);
+			SimpleTool.printTripleMatrix(tempCon.trueBasedCondPro);
+		} catch (Exception e) {
+			e.printStackTrace();
+		} // of try
+	}//of main
 }// of class ConditionalProbability

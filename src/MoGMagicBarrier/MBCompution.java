@@ -153,7 +153,7 @@ public class MBCompution {
 	/**
 	 *************************** 
 	 * Bubble sort. <br>
-	 * ��С��������
+	 * Sorted by sigma_k
 	 * 
 	 * @param paraSigma The given array.
 	 * @author Zhanghr 2014/06/14
@@ -188,7 +188,7 @@ public class MBCompution {
 	public static void main(String[] args) throws IOException {
 		try {
 			// Prepare data and preprocessing
-			String tempPropertyFileName = new String("src/properties/ml-100k.properties");
+			String tempPropertyFileName = new String("src/properties/ml-1m.properties");
 			DataInfo tempData = new DataInfo(tempPropertyFileName);
 			tempData.readData();
 

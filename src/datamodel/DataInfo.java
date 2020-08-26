@@ -26,47 +26,47 @@ public class DataInfo {
 	 * obtain the parameters from property file
 	 */
 	public Properties settings = new Properties();
-	
+
 	/**
 	 * user number
 	 */
 	public int userNum;
-	
+
 	/**
 	 * item number
 	 */
 	public int itemNum;
-	
+
 	/**
 	 * number of ratings
 	 */
 	public int numOfRatings;
-	
+
 	/**
 	 * triple rating data information (user, item, rating)
 	 */
 	public Triple[] trData;
-	
+
 	/**
 	 * User set
 	 */
-	public float[][] uRatings; //The rating matrix for the user 
-	public int[][] uRateInds;//The rating indices for the user 
-	public int[] uDgr;	//The degrees for the user 
-	
+	public float[][] uRatings; // The rating matrix for the user
+	public int[][] uRateInds;// The rating indices for the user
+	public int[] uDgr; // The degrees for the user
+
 	/**
-	 * The mean/average value of rating for the data set.
-	 * It is equal to sum(trainVector)/trainVector.length
+	 * The mean/average value of rating for the data set. It is equal to
+	 * sum(trainVector)/trainVector.length
 	 */
 	public float totalOfRatings;
 	public float meanOfRatings;
 
 	/**
-	 * Store non-zero element of data set as a vector.
-	 * It is a compressed version with out considering the position.
+	 * Store non-zero element of data set as a vector. It is a compressed version
+	 * with out considering the position.
 	 */
 	public float[] dataVector;
-	
+
 	/**
 	 * The small matrix U.
 	 */
@@ -76,40 +76,40 @@ public class DataInfo {
 	 * The small matrix V. U * V approximate R (non-zero part).
 	 */
 	public float[][] subV;
-	
+
 	/********************** Feature Matrix ***********************************/
 	/**
 	 * The rank of small matrices. It is often 2 or 4. It is also the number of
 	 * latent variable.
 	 */
 	public int rank;
-	
+
 	/**
 	 * Matrix Factorization iteration times
 	 */
 	public int MFIterTimes;
-	
+
 	/**
 	 * Convergence condition
 	 */
 	float convergence;
-	
+
 	/**
 	 * Number of Gaussian noise.
 	 */
 	public int numNoise;
-	
+
 	/**
-	 * The noise type of each rating. [0.2, 0.1, 0.7] indicates that the
-	 * probability is 0.2 for the first noise.
+	 * The noise type of each rating. [0.2, 0.1, 0.7] indicates that the probability
+	 * is 0.2 for the first noise.
 	 */
 	float[][] initialRatingsNoiseDistribution;
-	
+
 	/**
 	 * The weight of every noise.
 	 */
 	public float[] noiseWeight;
-	
+
 	public String dataFile;
 	public String splitStr;
 
@@ -120,19 +120,19 @@ public class DataInfo {
 	public double rlow; // the lowest rating level
 	public double rhigh; // the highest rating level
 	public double stepLen; // the length of step
-	
+
 	/**
 	 * max iteration times
 	 */
 	public int maxIterTimes;
-	
+
 	/**
 	 * 
 	 * @param paraFileName
 	 * @throws Exception
 	 */
-	public DataInfo(String paraPropertyFilename) throws Exception{
-		//Step 1. setting the parameters
+	public DataInfo(String paraPropertyFilename) throws Exception {
+		// Step 1. setting the parameters
 		InputStream tempInputStream = new BufferedInputStream(new FileInputStream(paraPropertyFilename));
 		settings.load(tempInputStream);
 		userNum = Integer.parseInt(settings.getProperty("numUsers"));
@@ -141,7 +141,7 @@ public class DataInfo {
 		rank = Short.parseShort(settings.getProperty("rank"));
 		MFIterTimes = Integer.parseInt(settings.getProperty("matrixFactorizationIterTimes"));
 		splitStr = new String(settings.getProperty("splitString"));
-		numNoise = Integer.parseInt(settings.getProperty("numNoise")); 
+		numNoise = Integer.parseInt(settings.getProperty("numNoise"));
 		LEVEL = Integer.parseInt(settings.getProperty("LEVEL"));
 		rlow = Double.parseDouble(settings.getProperty("rlow"));
 		rhigh = Double.parseDouble(settings.getProperty("rhigh"));
@@ -150,7 +150,7 @@ public class DataInfo {
 		maxIterTimes = Integer.parseInt(settings.getProperty("maxIterTimes"));
 		convergence = Float.parseFloat(settings.getProperty("convergence"));
 	}// Of the first constructor
-	
+
 	/**
 	 * 
 	 * @throws Exception
@@ -164,7 +164,7 @@ public class DataInfo {
 		if (!tempFile.exists()) {
 			System.out.println("File is not exist!");
 			return;
-		}// Of if
+		} // Of if
 
 		RandomAccessFile tempRanFile = new RandomAccessFile(tempFile, "r");
 		// 读文件的起始位置
@@ -172,7 +172,7 @@ public class DataInfo {
 		// 将读文件的开始位置移到beginIndex位置。
 		tempRanFile.seek(tempBeginIndex);
 
-		// Step 1. read rating data to triple_data	
+		// Step 1. read rating data to triple_data
 		trData = new Triple[numOfRatings];
 		for (int i = 0; i < numOfRatings; i++) {
 			trData[i] = new Triple();
@@ -185,37 +185,36 @@ public class DataInfo {
 			tempStr = tempLine.split(splitStr);
 			trData[tempCount].user = Integer.parseInt(tempStr[0]) - 1;
 			trData[tempCount].item = Integer.parseInt(tempStr[1]) - 1;
-			trData[tempCount].rate = Float.parseFloat(tempStr[2]);	
-			uDgr[trData[tempCount].user] ++;
-			tempCount ++;
-		}// Of while
-		
-		for(int i = 0; i < uDgr.length; i ++){
+			trData[tempCount].rate = Float.parseFloat(tempStr[2]);//*2
+			uDgr[trData[tempCount].user]++;
+			tempCount++;
+		} // Of while
+
+		for (int i = 0; i < uDgr.length; i++) {
 			uRatings[i] = new float[uDgr[i]];
 			uRateInds[i] = new int[uDgr[i]];
-			
+
 			uDgr[i] = 0;
-		}//Of for i
-		
+		} // Of for i
+
 		tempRanFile.close();
-		
-		//Step 2. Convert triple_data into user set. 
-		for(int i = 0; i < numOfRatings; i ++) {
+
+		// Step 2. Convert triple_data into user set.
+		for (int i = 0; i < numOfRatings; i++) {
 			int tempUserIndex = trData[i].user;
 			int tempItemIndex = trData[i].item;
 			float tempRating = trData[i].rate;
 			uRatings[tempUserIndex][uDgr[tempUserIndex]] = tempRating;
-			uRateInds[tempUserIndex][uDgr[tempUserIndex]] = tempItemIndex;	
+			uRateInds[tempUserIndex][uDgr[tempUserIndex]] = tempItemIndex;
 
 			totalOfRatings += tempRating;
-			uDgr[tempUserIndex] ++;
-		}//of for i	
-	}//of readData
-	
+			uDgr[tempUserIndex]++;
+		} // of for i
+	}// of readData
+
 	/**
 	 ********************** 
-	 * Convert the data set into a vector. The result is stored in
-	 * dataVector.
+	 * Convert the data set into a vector. The result is stored in dataVector.
 	 * 
 	 * @see #generateRandomSubMatrix(int)
 	 * @see tool.MatrixOpr#getMedian(double[])
@@ -223,16 +222,16 @@ public class DataInfo {
 	 */
 	public void computeDataVector() {
 		dataVector = new float[numOfRatings];
-		
+
 		int tempCnt = 0;
 		for (int i = 0; i < uRatings.length; i++) {
-			for (int j = 0; j < uRatings[i].length; j++) {	  
+			for (int j = 0; j < uRatings[i].length; j++) {
 				dataVector[tempCnt] = uRatings[i][j];
 				tempCnt++;
-			}// of for j
-		}// of for i
+			} // of for j
+		} // of for i
 	}// of getTrainVector
-	
+
 	/**
 	 ********************** 
 	 * Compute the average rating of the data set.
@@ -241,50 +240,51 @@ public class DataInfo {
 	public void computeAverageRating() {
 		meanOfRatings = totalOfRatings / numOfRatings;
 	}// Of computeAverageRating
-	
+
 	/**
 	 ********************** 
-	 * Recompute the data set. Each rating subtracts the mean value.
-	 * In this way the average value would be 0.
+	 * Recompute the data set. Each rating subtracts the mean value. In this way the
+	 * average value would be 0.
 	 ********************** 
 	 */
 	public void recomputeDataset() {
 		for (int i = 0; i < uRatings.length; i++) {
 			for (int j = 0; j < uRatings[i].length; j++) {
-				uRatings[i][j] =uRatings[i][j] - meanOfRatings;
+				uRatings[i][j] = uRatings[i][j] - meanOfRatings;
 			} // of for j
 		} // of for i
-		
-		for(int i = 0; i < dataVector.length; i ++){
+
+		for (int i = 0; i < dataVector.length; i++) {
 			dataVector[i] -= meanOfRatings;
-		}//of for i
+		} // of for i
 	}// Of recomputeTrainset
-	
+
 	/**
 	 ********************** 
-	 * Add the mean rating back so that we can compare the prediction with the actual one.
+	 * Add the mean rating back so that we can compare the prediction with the
+	 * actual one.
 	 ********************** 
 	 */
 	public void recoverRatingMatrix() {
 		for (int i = 0; i < uRatings.length; i++) {
 			for (int j = 0; j < uRatings[i].length; j++) {
-				uRatings[i][j] = uRatings[i][j] + meanOfRatings;
+				uRatings[i][j] += meanOfRatings;
 			} // of for j
 		} // of for i
-		
-		for(int i = 0; i < dataVector.length; i ++){
+
+		for (int i = 0; i < dataVector.length; i++) {
 			dataVector[i] += meanOfRatings;
-		}//of for i
+		} // of for i
 	}// of recoverTrainMatrix
-	
+
 	/**
 	 ********************** 
-	 * Generate random sub matrices for initialization.
-	 * The elements are subject to the uniform distribution in (-tempMu, tempMu).
+	 * Generate random sub matrices for initialization. The elements are subject to
+	 * the uniform distribution in (-tempMu, tempMu).
 	 ********************** 
 	 */
 	public void generateRandomSubMatrix() {
-		//rank = paraRank;
+		// rank = paraRank;
 		subU = new float[userNum][rank];
 		subV = new float[itemNum][rank];
 
@@ -295,60 +295,65 @@ public class DataInfo {
 		// Step 1. Generate two gaussian sub-matrices
 		for (int j = 0; j < rank; j++) {
 			for (int i = 0; i < userNum; i++) {
-				subU[i][j] = (float)(Math.random() * 2 * tempMu - tempMu);
+				subU[i][j] = (float) (Math.random() * 2 * tempMu - tempMu);
 			} // of for i
 
 			for (int i = 0; i < itemNum; i++) {
-				subV[i][j] = (float)(Math.random() * 2 * tempMu - tempMu);
+				subV[i][j] = (float) (Math.random() * 2 * tempMu - tempMu);
 			} // of for i
 		} // of for j
-		//SimpleTool.printMatrix(subU);
+			// SimpleTool.printMatrix(subU);
 	}// of generateRandomSubMatrix
-	
+
 	/**
 	 ********************** 
-	 * Set the distribution of the noise on each rating
+	 * Set the distribution of the noise on each rating For example: 0 0 1 1 0 0 0 1
+	 * 0 1 0 0 0 0 1
 	 ********************** 
 	 */
 	public void setRandomNoiseDistribution() {
 		Random tempRandom = new Random();
 		initialRatingsNoiseDistribution = new float[numOfRatings][numNoise];
-		//If numNoise =3, the noise distribution may be [0, 0, 1] for one rating.
+		// If numNoise =3, the noise distribution may be [0, 0, 1] for one rating.
 		for (int i = 0; i < numOfRatings; i++) {
 			initialRatingsNoiseDistribution[i][tempRandom.nextInt(numNoise)] = 1;
 		} // of for i
-		// SimpleTool.printMatrix(initialRatingsNoiseDistribution);
+			// SimpleTool.printMatrix(initialRatingsNoiseDistribution);
 	}// Of setRandomNoiseDistribution
-	
-	public float[][] getNoiseDistribution(){
+
+	/**
+	 * 
+	 * @return
+	 */
+	public float[][] getNoiseDistribution() {
 		return initialRatingsNoiseDistribution;
-	}//Of getNoiseDistribution
-	
+	}// Of getNoiseDistribution
+
 	/**
 	 ********************** 
 	 * Compute the weight of each noise
 	 * 
-	 * 			0 	0 	1
-	 * 			1 	0 	0
-	 * 			0 	1 	0
-	 * 			1 	0 	0
-	 * 			0 	0 	1
-	 * sum		2 	1 	2
-	 * weight	2/5	1/5	2/5
+	 * 		0 0 1 
+	 * 		1 0 0 
+	 * 		0 1 0 
+	 * 		1 0 0 
+	 * 		0 0 1 
+	 * sum 2 1 2 
+	 * weight 2/5 1/5 2/5
 	 ********************** 
 	 */
 	public void computeWeight() {
 		noiseWeight = new float[numNoise];
 		for (int j = 0; j < initialRatingsNoiseDistribution[0].length; j++) {
 			float tempColSum = 0;
-			//Sum the noise distribution of column
+			// Sum the noise distribution of column
 			for (int i = 0; i < initialRatingsNoiseDistribution.length; i++) {
 				tempColSum += initialRatingsNoiseDistribution[i][j];
 			} // of for i
 			noiseWeight[j] = tempColSum / numOfRatings;
 		} // of for j
 	}// of computeWeight
-	
+
 	/**
 	 * 
 	 * @param args
@@ -356,11 +361,33 @@ public class DataInfo {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		try {
-			String tempPropertyFileName = new String("src/properties/Epinions.properties");
+			String tempPropertyFileName = new String("src/properties/ml-10m.properties");
 			DataInfo tempData = new DataInfo(tempPropertyFileName);
 			tempData.readData();
+			tempData.computeAverageRating();
+			int[] numofEachLevel = new int[tempData.LEVEL];
+			double deviation = 0;
+
+			for (int j = 0; j < tempData.LEVEL; j++) {
+				for (int i = 0; i < tempData.numOfRatings; i++) {
+					if (Math.abs(tempData.trData[i].rate - (j + 1) * tempData.stepLen) < 0.001) {
+						numofEachLevel[j]++;
+					} // of if
+				} // of for i
+				
+				System.out.println((j + 1) * tempData.stepLen 
+						+ "'s rating number:" + numofEachLevel[j]);
+				deviation += numofEachLevel[j] * 
+						Math.pow(((j + 1) * tempData.stepLen 
+								- tempData.meanOfRatings), 2);
+			} // of for j
+			
+			deviation /= tempData.totalOfRatings;
+			System.out.println("average rating:" + tempData.meanOfRatings);
+			System.out.println("deviation:" + deviation);
+			System.out.println("density:" + (tempData.totalOfRatings + 0.0) / (tempData.userNum * tempData.itemNum));
 		} catch (Exception ee) {
 			ee.printStackTrace();
 		} // Of try
 	}// Of main
-}// Of Class SocialDataModel
+}// Of Class DataInfo

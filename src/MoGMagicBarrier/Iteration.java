@@ -123,6 +123,10 @@ public class Iteration {
 					}
 				}
 				y[i] = (1 - m) * x[i] + (m * (b[i] - sum)) / a[i][i];
+				//Modified by henry (because y[i] is the output probability, y[i] >=0,2020-08-05)
+				if(y[i] < 1e-6) {
+					y[i] = 1e-4;
+				}//of if
 				sum = 0;
 			}
 			// 达到精度后终止

@@ -36,21 +36,18 @@ public class MBSingleSigmaCompution {
 	 * Compute magic barrier of MAE Based on \gamma_{ijk}
 	 * 
 	 */
-	public double computeMGofMAE(double[][][] paraVisBasedCondPro, float[][] paraNoiseDistribution,
-			float[] paraTrainVector) {
+	public double computeMGofMAE(double[][][] paraVisBasedCondPro, float[] paraTrainVector) {
 		double tempMG = 0;
 
 		// SimpleTool.printDoubleArray(paraTrainVector);
-		for (int y = 0; y < paraNoiseDistribution.length; y++) {
-			for (int k = 0; k < paraNoiseDistribution[0].length; k++) {
-				for (int z = 0; z < paraVisBasedCondPro[k][(int) paraTrainVector[y] - 1].length; z++) {
-					tempMG += paraNoiseDistribution[y][k] * paraVisBasedCondPro[k][z][(int) paraTrainVector[y] - 1]
-							* Math.abs(z + 1 - paraTrainVector[y]);
-				} // of for i
-			} // of for k
+		for (int y = 0; y < paraTrainVector.length; y++) {
+			for (int z = 0; z < paraVisBasedCondPro[0][(int) paraTrainVector[y] - 1].length; z++) {
+				tempMG += paraVisBasedCondPro[0][z][(int) paraTrainVector[y] - 1]
+						* Math.abs(z + 1 - paraTrainVector[y]);
+			} // of for i
 		} // of for l
 
-		tempMG = tempMG / paraNoiseDistribution.length;
+		tempMG = tempMG / paraTrainVector.length;
 
 		return tempMG;
 	}// of computeMGofMAE
@@ -59,24 +56,21 @@ public class MBSingleSigmaCompution {
 	 * Compute magic barrier of MAE Based on \gamma_{ijk}
 	 * 
 	 */
-	public double computeMGofMAE2(CondProb paraCP, double[][][] paraVisBasedCondPro, float[][] paraNoiseDistribution,
+	public double computeMGofMAE2(CondProbSingleSigma paraCP, double[][] paraVisBasedCondPro,
 			float[] paraTrainVector) {
 		double tempMG = 0;
 
 		// SimpleTool.printDoubleArray(paraTrainVector);
-		for (int y = 0; y < paraNoiseDistribution.length; y++) {// 评分向量的长度
-			for (int k = 0; k < paraNoiseDistribution[0].length; k++) {// 噪声的个数
-				for (double z = paraCP.data.rlow; z <= paraCP.data.rhigh; z = z + paraCP.data.stepLen) {
-					int tempY = paraCP.getIndexBasedRating(paraTrainVector[y]);
-					int tempZ = paraCP.getIndexBasedRating(z);
+		for (int y = 0; y < paraTrainVector.length; y++) {// 评分向量的长度
+			for (double z = paraCP.data.rlow; z <= paraCP.data.rhigh; z = z + paraCP.data.stepLen) {
+				int tempY = paraCP.getIndexBasedRating(paraTrainVector[y]);//visual rating
+				int tempZ = paraCP.getIndexBasedRating(z);//true rating
 
-					tempMG += paraNoiseDistribution[y][k] * paraVisBasedCondPro[k][tempZ][tempY]
-							* Math.abs(z - paraTrainVector[y]);
-				} // of for i
-			} // of for k
+				tempMG += paraVisBasedCondPro[tempZ][tempY] * Math.abs(z - paraTrainVector[y]);
+			} // of for i
 		} // of for l
 
-		tempMG = tempMG / paraNoiseDistribution.length;
+		tempMG = tempMG / paraTrainVector.length;
 
 		return tempMG;
 	}// of computeMGofMAE2
@@ -108,24 +102,21 @@ public class MBSingleSigmaCompution {
 	 * Compute magic barrier of RMSE Based on \gamma_{ijk}
 	 * 
 	 */
-	public double computeMGofRMSE2(CondProb paraCP, double[][][] paraVisBasedCondPro, float[][] paraNoiseDistribution,
+	public double computeMGofRMSE2(CondProbSingleSigma paraCP, double[][] paraVisBasedCondPro,
 			float[] paraTrainVector) {
 		double tempMG = 0;
 
 		// SimpleTool.printDoubleArray(paraTrainVector);
-		for (int y = 0; y < paraNoiseDistribution.length; y++) {
-			for (int k = 0; k < paraNoiseDistribution[0].length; k++) {
-				for (double z = paraCP.data.rlow; z <= paraCP.data.rhigh; z = z + paraCP.data.stepLen) {
-					int tempY = paraCP.getIndexBasedRating(paraTrainVector[y]);
-					int tempZ = paraCP.getIndexBasedRating(z);
+		for (int y = 0; y < paraTrainVector.length; y++) {
+			for (double z = paraCP.data.rlow; z <= paraCP.data.rhigh; z = z + paraCP.data.stepLen) {
+				int tempY = paraCP.getIndexBasedRating(paraTrainVector[y]);//visual rating
+				int tempZ = paraCP.getIndexBasedRating(z);//true rating
 
-					tempMG += paraNoiseDistribution[y][k] * paraVisBasedCondPro[k][tempZ][tempY]
-							* Math.pow(z - paraTrainVector[y], 2);
-				} // of for i
-			} // of for k
+				tempMG += paraVisBasedCondPro[tempZ][tempY] * Math.pow(z - paraTrainVector[y], 2);
+			} // of for i
 		} // of for l
 
-		tempMG = Math.sqrt(tempMG / paraNoiseDistribution.length);
+		tempMG = Math.sqrt(tempMG / paraTrainVector.length);
 
 		return tempMG;
 	}// of computeMGofRMSE
@@ -187,71 +178,37 @@ public class MBSingleSigmaCompution {
 	 */
 	public static void main(String[] args) throws IOException {
 		try {
-
 			// Prepare data and preprocessing
-			String tempPropertyFileName = new String("src/properties/ml-100k.properties");
+			String tempPropertyFileName = new String("src/properties/ml-1m.properties");
 			DataInfo tempData = new DataInfo(tempPropertyFileName);
 			tempData.readData();
-			
-			// SimpleTool.printMatrix(tempData.uTrRatings);
-			tempData.computeAverageRating();
 			tempData.computeDataVector();
-			tempData.recomputeDataset();// subtract the average of training set
-			tempData.generateRandomSubMatrix();
-			// SimpleTool.printMatrix(tempData.subU);
-			// SimpleTool.printMatrix(tempData.subV);
-			tempData.numNoise = 1;
-			tempData.setRandomNoiseDistribution();
-			tempData.computeWeight();// For the first time. Round 0
-
-			MLGMDN tempEm = new MLGMDN(tempData);
-			// tempEm.setModel();
-
-			tempEm.iterationEM(1);
-//			tempEm.printNoiseDistribution();
-			tempData.recoverRatingMatrix();
-//			System.out.println("Latent variable z_{ijk}:");
-//			SimpleTool.printMatrix(tempEm.z);
 
 			// Compute magic barrier
-			CondProb tempCP = new CondProb(tempData);
-			float[] singleSigma = { (float) (0.9 * 0.9) };
-			double[][][] tempTrueBasedCondPro = tempCP.computeTrueBasedCondProWithInteg(singleSigma);
-			// SimpleTool.printFloatArray(tempCP.sigma);//correct
-			// SimpleTool.printFloatArray(tempEm.noiseWeight);//correct
-			System.out.println("TrueBasedCondPro start ...");
-			SimpleTool.printTripleMatrix(tempTrueBasedCondPro);// correct
-			System.out.println("TrueBasedCondPro end ...");
-			tempCP.computePropOfVisRating(tempEm);// correct
-			System.out.println("propOfEachVisRating start ...");
-			SimpleTool.printMatrix(tempCP.propOfEachVisRating);// correct
-			System.out.println("propOfEachVisRating end ...");
-			tempCP.computePropOfTrueRatingSOR();// correct
-			System.out.println("propOfTrueRating start ...");
-			SimpleTool.printMatrix(tempCP.propOfTrueRating);// correct
-			System.out.println("propOfTrueRating end ...");
-			tempCP.computeVisBasedCondProBasedOnBayes();
-			System.out.println("visBasedCondPro start ...");
-			SimpleTool.printTripleMatrix(tempCP.visBasedCondPro);
-			System.out.println("visBasedCondPro end ...");
+			CondProbSingleSigma tempCon = new CondProbSingleSigma(tempData);
+			float tempSigma = (float)(0.9 * 0.9);
+			//step 1. Calculate the conditional probability P_{σ_k}(r_{i,j}= y|o_{i,j} = z)
+			tempCon.computeTrueBasedCondProWithInteg(tempSigma);
+			System.out.println("P_{σ_k}(r_{i,j}= y|o_{i,j} = z) is: ");
+			SimpleTool.printMatrix(tempCon.trueBasedCondPro);
+			//step 2. Calculate the probability P_{σ_k}(r_{i,j} = y)
+			tempCon.computePropOfVisRating();
+			System.out.println("P_{σ_k}(r_{i,j} = y is: ");
+			SimpleTool.printDoubleArray(tempCon.propOfEachVisRating);
+			//step 3. Calculate the probability P_{σ_k}(o_{i,j} = z)
+			tempCon.computePropOfTrueRatingSOR();
+			System.out.println("P_{σ_k}(o_{i,j} = z) is: ");
+			SimpleTool.printDoubleArray(tempCon.propOfTrueRating);
+			//step 4. calculate the probability P_{σ_k}(o_{i,j}= z|r_{i,j} = y)
+			tempCon.computeVisBasedCondProBasedOnBayes();
+			System.out.println("P_{σ_k}(o_{i,j}= z|r_{i,j} = y) is: ");
+			SimpleTool.printMatrix(tempCon.visBasedCondPro);
+			
 			MBSingleSigmaCompution tempMBCom = new MBSingleSigmaCompution();
-//			double tempMB = tempMBCom.computeMG(tempCP.visBasedCondPro, tempEm.z, tempData.trainVector);
-//			System.out.println("MB(based on z_{ijk}): " + tempMB); 
-
-			double tempMB = tempMBCom.computeMGofMAE2(tempCP, tempCP.visBasedCondPro, tempEm.noiseDistribution,
-					tempData.dataVector);
-			System.out.println("MB(based on gamma_{ijk}) of MAE: " + tempMB);
-			tempMB = tempMBCom.computeMGofRMSE2(tempCP, tempCP.visBasedCondPro, tempEm.noiseDistribution,
-					tempData.dataVector);
-			System.out.println("MB(based on gamma_{ijk}) of RMSE: " + tempMB);
-
-			bubbleSort(tempCP.sigma, tempEm.noiseWeight);
-			SimpleTool.printFloatArray(tempCP.sigma);// correct
-			SimpleTool.printFloatArray(tempEm.noiseWeight);// correct
-			// tempMB = tempMBCom.computeMG(tempData.ratingMatrix, tempEm.predictions);
-			// System.out.println("MB(||O-R||): " + tempMB);
-			// System.out.println("当前噪声数为" + j + "的第" + i + "次" +"\r\n");
-
+			double tempMBOfMAE = tempMBCom.computeMGofMAE2(tempCon, tempCon.visBasedCondPro, tempData.dataVector);
+			System.out.println("MGBR(based on gamma_{ijk}) of MAE: " + tempMBOfMAE);
+			double tempMBOfRMSE = tempMBCom.computeMGofRMSE2(tempCon, tempCon.visBasedCondPro, tempData.dataVector);
+			System.out.println("MGBR(based on gamma_{ijk}) of RMSE: " + tempMBOfRMSE);
 		} catch (Exception e) {
 			e.printStackTrace();
 		} // of try

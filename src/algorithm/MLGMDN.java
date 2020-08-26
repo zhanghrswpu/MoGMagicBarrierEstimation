@@ -169,8 +169,8 @@ public class MLGMDN {
 		numUsers = data.userNum;
 		numItems = data.itemNum;
 		
-		factor_U = new float[numUsers][rank];
-		factor_V = new float[numItems][rank];
+		//factor_U = new float[numUsers][rank];
+		//factor_V = new float[numItems][rank];
 
 		numTrainSize = data.numOfRatings;
 		

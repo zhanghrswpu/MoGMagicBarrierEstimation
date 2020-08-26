@@ -248,6 +248,11 @@ public class MatrixOpr {
 		// return tempMulti;
 	}// of Matrix_Subspace
 
+	/**
+	 * Get the median of an array.
+	 * @param arr
+	 * @return
+	 */
 	public static double getMedian(float[] arr) {
 		float[] tempArr = Arrays.copyOf(arr, arr.length);
 		Arrays.sort(tempArr);
