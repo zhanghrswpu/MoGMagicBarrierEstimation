@@ -15,9 +15,11 @@ public class NormalDistribution {
 
 	/**
 	 * Step-length integration
+	 * F(x) =\int_{paraA}^{paraB} 1 / (sqrt(2 * PI) * paraSigma) *
+	 *  (e ^(-(x - paraMu)^ 2) / 2 * pow(paraSigma, 2))) dx
 	 */
 	public static double stepLengthIntegration(double paraMu, double paraSigma, double paraA, double paraB) {
-		int tempLength = 1000;
+		int tempLength = 10000;
 		double tempStepLength = (paraB - paraA) / tempLength;
 		double tempStepIntegration = 0;
 

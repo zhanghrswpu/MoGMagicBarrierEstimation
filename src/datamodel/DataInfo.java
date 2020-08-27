@@ -53,6 +53,13 @@ public class DataInfo {
 	public float[][] uRatings; // The rating matrix for the user
 	public int[][] uRateInds;// The rating indices for the user
 	public int[] uDgr; // The degrees for the user
+	
+	/**
+	 * item set
+	 */
+	public float[][] iRatings; // The rating matrix for the item
+	public int[][] iRateInds;// The rating indices for the item
+	public int[] iDgr; // The degrees for the item
 
 	/**
 	 * The mean/average value of rating for the data set. It is equal to
@@ -180,6 +187,10 @@ public class DataInfo {
 		uDgr = new int[userNum];
 		uRatings = new float[userNum][];
 		uRateInds = new int[userNum][];
+		
+		iDgr = new int[itemNum];
+		iRatings = new float[itemNum][];
+		iRateInds = new int[itemNum][];
 		int tempCount = 0;
 		while ((tempLine = tempRanFile.readLine()) != null) {
 			tempStr = tempLine.split(splitStr);
@@ -187,6 +198,7 @@ public class DataInfo {
 			trData[tempCount].item = Integer.parseInt(tempStr[1]) - 1;
 			trData[tempCount].rate = Float.parseFloat(tempStr[2]);//*2
 			uDgr[trData[tempCount].user]++;
+			iDgr[trData[tempCount].item]++;
 			tempCount++;
 		} // Of while
 
@@ -195,6 +207,13 @@ public class DataInfo {
 			uRateInds[i] = new int[uDgr[i]];
 
 			uDgr[i] = 0;
+		} // Of for i
+		
+		for (int i = 0; i < iDgr.length; i++) {
+			iRatings[i] = new float[iDgr[i]];
+			iRateInds[i] = new int[iDgr[i]];
+
+			iDgr[i] = 0;
 		} // Of for i
 
 		tempRanFile.close();
@@ -206,9 +225,13 @@ public class DataInfo {
 			float tempRating = trData[i].rate;
 			uRatings[tempUserIndex][uDgr[tempUserIndex]] = tempRating;
 			uRateInds[tempUserIndex][uDgr[tempUserIndex]] = tempItemIndex;
+			
+			iRatings[tempItemIndex][iDgr[tempItemIndex]] = tempRating;
+			iRateInds[tempItemIndex][iDgr[tempItemIndex]] = tempUserIndex;
 
 			totalOfRatings += tempRating;
 			uDgr[tempUserIndex]++;
+			iDgr[tempItemIndex]++;
 		} // of for i
 	}// of readData
 

@@ -1,9 +1,7 @@
 package SingleGaussMagicBarrier;
 
-import MoGMagicBarrier.CondProb;
 import MoGMagicBarrier.Iteration;
 import MoGMagicBarrier.NormalDistribution;
-import algorithm.MLGMDN;
 import datamodel.DataInfo;
 import tool.SimpleTool;
 
@@ -13,7 +11,7 @@ public class CondProbSingleSigma {
 	/**
 	 * Sigma
 	 */
-	public float sigma;
+	public double sigma;
 
 	/**
 	 * Conditional probability based ¡°true¡± rating For example: 5 * 5 (LEVEL *
@@ -73,8 +71,8 @@ public class CondProbSingleSigma {
 	 * 
 	 * output: trueBasedCondPro (LEVEL * LEVEL)
 	 */
-	public double[][] computeTrueBasedCondProWithInteg(float paraSigma) {
-		sigma = (float) Math.sqrt(paraSigma);
+	public double[][] computeTrueBasedCondProWithInteg(double paraSigma) {
+		sigma = Math.sqrt(paraSigma);
 
 		for (int z = 0; z < data.LEVEL; z++) {
 			// stepLengthIntegration(i + 1, paraSigma, -1000, 0)
@@ -128,12 +126,12 @@ public class CondProbSingleSigma {
 		// SimpleTool.printMatrix(paraMLG.noiseDistribution);
 		// System.out.println("rlow: " + rlow + " stepLen: " + stepLen);
 		for (int i = 0; i < data.numOfRatings; i++) {
-			double tempOrigRating = data.dataVector[i];
+			double tempOrigRating = data.trData[i].rate;
 
 			totalGammaOfVisRating += 1; // paraMLG.noiseDistribution[i][k];
 			for (int y = 0; y < data.LEVEL; y++) {
-				if (tempOrigRating > data.rlow + y * data.stepLen - data.stepLen / 2
-						&& tempOrigRating <= data.rlow + y * data.stepLen + data.stepLen / 2) {
+				if (tempOrigRating > data.rlow + y * data.stepLen - data.stepLen / 2.0
+						&& tempOrigRating <= data.rlow + y * data.stepLen + data.stepLen / 2.0) {
 					gammaOfEachVisRating[y] += 1; // paraMLG.noiseDistribution[i][k];
 				} // Of if
 			} // of for j

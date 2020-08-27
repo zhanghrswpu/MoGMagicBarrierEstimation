@@ -8,6 +8,7 @@ package MoGMagicBarrier;
  */
 public class Iteration {
 	/**
+	 * a * y = b??
 	 * Jacobi迭代法
 	 * 
 	 * @param a
@@ -28,29 +29,108 @@ public class Iteration {
 				for (int j = 0; j < n; j++) {
 					if (i != j) {
 						sum += a[i][j] * x[j];
-					}
-				}
+					}//of if
+				}//of for j
 				y[i] = (b[i] - sum) / a[i][i];
 				sum = 0;
-			}
+			}//of for i
 			// 达到精度后终止
 			i = 0;
 			while (i < n) {
 				z = Math.abs(x[i] - y[i]);
-				if (z > e)
+				if (z > e) {
 					break;
+				}//of if
 				i++;
-			}
+			}//of while
 			if (i != n) {
-				for (i = 0; i < n; i++)
+				for (i = 0; i < n; i++) {
 					x[i] = y[i];
-			} else if (i == n)
+				}//of for i
+			} else if (i == n) {
 				break;
-		}
+			}//of if
+		}//of while
 		return y;
 	}
+	
+	/**
+	 * Compare two arrays
+	 * 
+	 * @param paraA
+	 * @param paraB
+	 * @return
+	 */
+	public static double Compare(double[] paraA, double[] paraB) {
+		double tempValue = 0;
+		int i;
+		for (i = 0; i < paraA.length; i++) {
+			tempValue += Math.abs(paraA[i] - paraB[i]);
+		}// Of for i
+		return tempValue;
+	}// Of Compare
+	
+	/**
+	 * paraA * paraX = paraB
+	 * 
+	 * @param paraA
+	 * @param paraX
+	 * @param paraB
+	 * @param precesion
+	 */
+	public static double[] Gauss_seidel(double[][] paraA, double[] paraX,
+			double[] paraB, double precesion) {
+		int i, j, k;
+		double[] x2 = new double[paraX.length];
+		double[] x3 = new double[paraX.length];
+		double sum;
+		for (i = 0; i < paraX.length; i++) {
+			x2[i] = paraX[i];
+			x3[i] = paraX[i];
+		}// of for i
+		k = 1; // k 为迭代次数
+		while (true) {
+			for (i = 0; i < paraX.length; i++) {
+				sum = 0;
+				for (j = 0; j < paraX.length; j++) {
+					if (j != i) {
+						sum += paraA[i][j] * x2[j];
+					}// Of if
+				}// Of for j
+				paraX[i] = (paraB[i] - sum) / paraA[i][i];
+				x2[i] = paraX[i];
+			}// of for i
+			/*
+			 * // 输出每一次迭代的结果 System.out.println("第%d 次迭代:\n" + k);
+			 * System.out.println("x3= "); for (i = 0; i < paraX.length; i++) {
+			 * System.out.print(" " + x3[i]); }// Of for i System.out.println();
+			 * System.out.println("x= "); for (i = 0; i < paraX.length; i++) {
+			 * System.out.print(" " + paraX[i]); }// Of for i
+			 * System.out.println();
+			 */
+			// 判断是否达到迭代精度
+			if (Compare(x3, paraX) < precesion) {
+				/*
+				 * System.out.println("达到迭代精度的方程组的解为:\n");
+				 * System.out.println("x= "); for (i = 0; i < paraX.length; i++)
+				 * { System.out.print(" " + paraX[i]); }// Of for i
+				 * System.out.println();
+				 */
+				break;
+			} else {
+				for (i = 0; i < paraX.length; i++) {
+					x3[i] = paraX[i];
+				}// Of for i
+				k++;
+				continue;
+			}// of if
+		}// of while
+
+		return paraX;
+	}// Of Gauss_seidel
 
 	/**
+	 * a * y = b??
 	 * 高斯-赛德尔方法
 	 * 
 	 * @param a
